@@ -1,19 +1,9 @@
 ﻿#include "Arkanoid/Public/Bonuses/BonusInstant/BonusIncreaseLife.h"
 #include "Arkanoid/Public/Framework/Paddle.h"
+#include "Framework/ArkanoidGameplayClasses.h"
+#include "Framework/ArkanoidGI.h"
 
-//					Parent:
-
-ABonusIncreaseLife::ABonusIncreaseLife()
+void ABonusIncreaseLife::Activate()
 {
-	TypeBonusByTime = Instant;
-	Value = 1.0f;
-}
-
-//					Gameplay:
-
-void ABonusIncreaseLife::BonusAction(ABonus* OldBonus)
-{
-	Super::BonusAction();
-
-	Paddle->SetLives(Value);
+	Paddle->GameplayClasses->ArkanoidGI->AddLives(Value);
 }

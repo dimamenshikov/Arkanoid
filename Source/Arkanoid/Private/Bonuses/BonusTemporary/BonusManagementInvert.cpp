@@ -1,28 +1,14 @@
 ﻿#include "Arkanoid/Public/Bonuses/BonusTemporary/BonusManagementInvert.h"
 #include "Arkanoid/Public/Framework/Paddle.h"
 
-//					Parent:
-
-ABonusManagementInvert::ABonusManagementInvert()
+void ABonusManagementInvert::Activate()
 {
-	TypeBonusByTime = TemporaryByTime;
-}
-
-//					Gameplay:
-
-void ABonusManagementInvert::BonusAction(ABonus* OldBonus)
-{
-	Super::BonusAction();
-
 	Paddle->PaddleSpeed *= -1;
 }
 
-void ABonusManagementInvert::ResetData()
+void ABonusManagementInvert::DeleteBonus()
 {
-	if (Paddle)
-	{
-		Paddle->PaddleSpeed *= -1;
-	}
+	Activate();
 
-	Super::ResetData();
+	Super::DeleteBonus();
 }

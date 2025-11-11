@@ -6,36 +6,53 @@
 #include "Arkanoid/Public/Widgets/PauseWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
+#include "Framework/ArkanoidPC.h"
+#include "Framework/Paddle.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetTextLibrary.h"
+#include "SaveClasses/HUD_S.h"
 
 void AArkanoidHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
 	GameplayClasses->ArkanoidHUD = this;
-
-	Interface = Cast<UInterfaceWidget>(CreateWidget(PlayerOwner, InterfaceClass));
-	Interface->AddToViewport();
-
-	GetWorldTimerManager().SetTimer(Timer, this, &AArkanoidHUD::LevelLoad, 0.1f, false);
 }
 
-void AArkanoidHUD::Tick(float DeltaSeconds)
+void AArkanoidHUD::LevelLoad()
 {
-	Super::Tick(DeltaSeconds);
+	Interface = Cast<UInterfaceWidget>(CreateWidget(GameplayClasses->ArkanoidPC, InterfaceClass));
+	Interface->AddToViewport();
+	Interface->UpdateScore(GameplayClasses->ArkanoidPS->PlayerScore, GameplayClasses->ArkanoidGI->Record);
 
-	Time += DeltaSeconds;
-	UpdateTime();
+	Pause = Cast<UPauseWidget>(CreateWidget(GameplayClasses->ArkanoidPC, PauseClass));
+	Pause->Owner = this;
+
+	GameplayClasses->ArkanoidPC->SetShowMouseCursor(false);
+	GameplayClasses->ArkanoidPC->SetInputMode(FInputModeGameOnly());
+
+	GameplayClasses->ArkanoidPS->OnPlayerScoreChange.AddDynamic(this, &AArkanoidHUD::UpdateScore);
+
+	GameplayClasses->ArkanoidP->OnLifeChange.AddDynamic(this, &AArkanoidHUD::UpdateLives);
+	ShowTime();
+	UpdateLives(GameplayClasses->ArkanoidGI->Lives);
+}
+
+void AArkanoidHUD::StartGame()
+{
+	GetWorldTimerManager().SetTimer(Timer, this, &AArkanoidHUD::UpdateTime, GetWorld()->DeltaTimeSeconds, true);
+}
+
+void AArkanoidHUD::UpdateTime()
+{
+	Time += GetWorld()->DeltaTimeSeconds;
+	Interface->UpdateTime(Time);
 }
 
 void AArkanoidHUD::EndGame(bool bWin)
 {
+	GetWorldTimerManager().ClearTimer(Timer);
 	bPause = false;
-
-	if (!Pause)
-	{
-		Pause = Cast<UPauseWidget>(CreateWidget(PlayerOwner, PauseClass));
-	}
 
 	Pause->Continue_T->SetText(FText::FromString(TEXT("Начать заново")));
 	Pause->EndGame_T->SetText(FText::FromString(bWin ? TEXT("Победа") : TEXT("Поражение")));
@@ -43,38 +60,35 @@ void AArkanoidHUD::EndGame(bool bWin)
 		bWin ? FSlateColor(FLinearColor::Green) : FSlateColor(FLinearColor::Red));
 
 	SetPause(true);
-	UGameplayStatics::SetGamePaused(this, !UGameplayStatics::GetPlayerController(this, 0)->IsPaused());
 }
 
 void AArkanoidHUD::SetPause(const bool bPauseGame)
 {
-	if (!Pause)
-	{
-		Pause = Cast<UPauseWidget>(CreateWidget(PlayerOwner, PauseClass));
-	}
-
 	if (bPauseGame)
 	{
 		Pause->AddToViewport();
-		UGameplayStatics::GetPlayerController(this, 0)->SetInputMode(FInputModeGameAndUI());
+		GameplayClasses->ArkanoidPC->SetInputMode(FInputModeGameAndUI());
 	}
 	else
 	{
 		Pause->RemoveFromParent();
-		UGameplayStatics::GetPlayerController(this, 0)->SetInputMode(FInputModeGameOnly());
+		GameplayClasses->ArkanoidPC->SetInputMode(FInputModeGameOnly());
 	}
 
-	UGameplayStatics::GetPlayerController(this, 0)->SetShowMouseCursor(bPauseGame);
+	GameplayClasses->ArkanoidPC->SetShowMouseCursor(bPauseGame);
 }
 
-void AArkanoidHUD::LevelLoad()
+void AArkanoidHUD::ShowTime()
 {
-	GameplayClasses->ArkanoidPS->OnPlayerScoreChange.AddDynamic(this, &AArkanoidHUD::UpdateScore);
+	if (Interface->Number == 0)
+	{
+		Interface->Launch_T->SetVisibility(ESlateVisibility::Hidden);
+		return;
+	}
+	Interface->Launch_T->SetText(UKismetTextLibrary::Conv_IntToText(Interface->Number--));
 
-	UGameplayStatics::GetPlayerController(this, 0)->SetShowMouseCursor(false);
-	UGameplayStatics::GetPlayerController(this, 0)->SetInputMode(FInputModeGameOnly());
-
-	Interface->UpdateScore(GameplayClasses->ArkanoidPS->PlayerScore, GameplayClasses->ArkanoidGI->Record);
+	FTimerHandle TimerTemp;
+	GetWorldTimerManager().SetTimer(TimerTemp, this, &AArkanoidHUD::ShowTime, 1.0f, false);
 }
 
 void AArkanoidHUD::UpdateScore(const int32 NewScore)
@@ -82,7 +96,21 @@ void AArkanoidHUD::UpdateScore(const int32 NewScore)
 	Interface->UpdateScore(NewScore);
 }
 
-void AArkanoidHUD::UpdateTime()
+void AArkanoidHUD::UpdateLives(const int32 NewLives)
 {
-	Interface->UpdateTime(Time);
+	Interface->UpdateLives(NewLives);
+}
+
+USaveGame* AArkanoidHUD::Save(USaveGame* BaseSaveObject)
+{
+	INIT_SAVE_OBJECT(UHUD_S, HUD_S);
+	SET_VAL_1(HUD_S, Time, SAVE);
+	return ISaveAndLoadGame::Save(HUD_S);
+}
+
+void AArkanoidHUD::Load(const USaveGame*& SaveGameObject)
+{
+	ISaveAndLoadGame::Load(SaveGameObject);
+	auto HUD_S = Cast<UHUD_S>(SaveGameObject);
+	SET_VAL_1(HUD_S, Time, LOAD);
 }

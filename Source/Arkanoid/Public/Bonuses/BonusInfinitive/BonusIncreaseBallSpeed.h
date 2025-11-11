@@ -1,29 +1,18 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Arkanoid/Public/Bonuses/Bonus.h"
+#include "Bonuses/BonusInfinitive.h"
 #include "BonusIncreaseBallSpeed.generated.h"
 
 UCLASS(Abstract)
-class ARKANOID_API ABonusIncreaseBallSpeed : public ABonus
+class ARKANOID_API ABonusIncreaseBallSpeed : public ABonusInfinitive
 {
 	GENERATED_BODY()
 
-	//					Parent:
-
-	// Variable
-
-	// Function
 public:
 	ABonusIncreaseBallSpeed();
 
-	//					Gameplay:
-
-	// Variable
-
-	// Function
 protected:
-	virtual void BonusAction(ABonus* OldBonus) override;
-	virtual void UpdateBonus() override;
-	virtual void ResetData() override;
+	virtual void Activate() override;
+	virtual void DeleteBonus() override;
 };

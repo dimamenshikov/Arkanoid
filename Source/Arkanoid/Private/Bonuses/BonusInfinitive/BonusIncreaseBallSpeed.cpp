@@ -1,39 +1,30 @@
 ﻿#include "Arkanoid/Public/Bonuses/BonusInfinitive/BonusIncreaseBallSpeed.h"
 #include "Arkanoid/Public/Framework/Paddle.h"
 #include "Arkanoid/Public/World/Ball.h"
-
-//					Parent:
+#include "Bonuses/BonusInfinitive/BonusDecreaseBallSpeed.h"
+#include "Framework/ArkanoidGameplayClasses.h"
+#include "Framework/ArkanoidGI.h"
 
 ABonusIncreaseBallSpeed::ABonusIncreaseBallSpeed()
 {
 	Value = 300.0f;
 }
 
-//					Gameplay:
-
-void ABonusIncreaseBallSpeed::BonusAction(ABonus* OldBonus)
+void ABonusIncreaseBallSpeed::Activate()
 {
-	Super::BonusAction();
-
-	UpdateBonus();
-}
-
-void ABonusIncreaseBallSpeed::UpdateBonus()
-{
-	Super::UpdateBonus();
-
-	if (Paddle && Paddle->CurrentBall && Paddle->CurrentBall->Speed + Value < Paddle->GameplaySetting.MaxBallSpeed)
+	if (Paddle->CurrentBall && Paddle->GameplayClasses->ArkanoidGI->LevelLoad)
 	{
-		Paddle->CurrentBall->Speed += Value;
+		Paddle->CurrentBall->Speed = FMath::Min(Paddle->GameplaySetting.MaxBallSpeed,
+		                                        Paddle->CurrentBall->Speed + Value);
 	}
 }
 
-void ABonusIncreaseBallSpeed::ResetData()
+void ABonusIncreaseBallSpeed::DeleteBonus()
 {
 	if (Paddle && Paddle->CurrentBall)
 	{
 		Paddle->CurrentBall->Speed = Paddle->GameplaySetting.DefaultBallSpeed;
 	}
 
-	Super::ResetData();
+	Super::DeleteBonus();
 }

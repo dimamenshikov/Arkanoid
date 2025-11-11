@@ -5,13 +5,10 @@
 #include "Arkanoid/Public/World/Ball.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-
-//					Parent:
+#include "SaveClasses/LifeBlock_S.h"
 
 ABlock::ABlock()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Block"));
 	SetRootComponent(StaticMesh);
 
@@ -46,8 +43,6 @@ void ABlock::Interaction(ABall* Ball, const FHitResult& HitResult)
 	}
 }
 
-//					Gameplay:
-
 void ABlock::Exterminate()
 {
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EffectDestroy, GetActorTransform());
@@ -55,9 +50,7 @@ void ABlock::Exterminate()
 
 	if (const auto World = GetWorld(); BonusClass && World)
 	{
-		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		World->SpawnActor<ABonus>(BonusClass, GetActorLocation(), GetActorRotation());
+		World->SpawnActor<ABonus>(BonusClass, GetActorLocation(), FRotator::ZeroRotator);
 	}
 
 	if (const auto Pawn = Cast<APawn>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0)))
@@ -65,4 +58,25 @@ void ABlock::Exterminate()
 		Cast<AArkanoidPS>(Pawn->GetPlayerState())->ChangePlayerScore(Score);
 	}
 	Destroy();
+}
+
+USaveGame* ABlock::Save(USaveGame* BaseSaveObject)
+{
+	INIT_SAVE_OBJECT(ULifeBlock_S, LifeBlock_S);
+	SET_VAL_2(LifeBlock_S, BonusClass, Score, SAVE);
+	LifeBlock_S->Life = LifeComponent->Life;
+	LifeBlock_S->MaxLife = LifeComponent->MaxLife;
+	return ISaveAndLoadGame::Save(LifeBlock_S);
+}
+
+void ABlock::Load(const USaveGame*& SaveGameObject)
+{
+	ISaveAndLoadGame::Load(SaveGameObject);
+	auto LifeBlock_S = Cast<ULifeBlock_S>(SaveGameObject);
+	SET_VAL_2(LifeBlock_S, BonusClass, Score, LOAD);
+	LifeComponent->Life = LifeBlock_S->Life;
+	LifeComponent->MaxLife = LifeBlock_S->MaxLife;
+	const float Alpha = static_cast<float>(LifeComponent->GetLife() - 1) / (LifeComponent->MaxLife - 1);
+	Material->SetVectorParameterValue(
+		"Color", UKismetMathLibrary::LinearColorLerp(FLinearColor::Red, FLinearColor::Green, Alpha));
 }

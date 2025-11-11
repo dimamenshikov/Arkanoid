@@ -15,7 +15,6 @@ class ARKANOID_API IStartEvents
 	GENERATED_BODY()
 
 public:
-	void BindStartEvents(AActor* Self, bool bLevelLoad, bool bStartGame);
-	UFUNCTION()	virtual void LevelLoad(){};
-	UFUNCTION()	virtual void StartGame(){};
+	virtual void LevelLoad(){};
+	virtual void StartGame(){};
 };

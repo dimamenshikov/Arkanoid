@@ -2,30 +2,19 @@
 #include "Arkanoid/Public/Framework/Paddle.h"
 #include "Arkanoid/Public/World/Ball.h"
 
-//					Parent:
-
-ABonusMagnet::ABonusMagnet()
+void ABonusMagnet::MagnetBall(const FHitResult& HitResult)
 {
-	TypeBonusByTime = TemporaryByTime;
-}
-
-//					Gameplay:
-
-void ABonusMagnet::BonusAction(ABonus* OldBonus)
-{
-	Super::BonusAction();
-
-	if (Paddle->CurrentBall)
+	if (Paddle && Paddle->CurrentBall && Paddle == HitResult.GetActor())
 	{
-		Paddle->CurrentBall->OnBallHit.AddDynamic(this, &ABonusMagnet::MagnetBall);
+		Paddle->CurrentBall->ActiveMove(false);
+		Paddle->CurrentBall->AttachToActor(Paddle, FAttachmentTransformRules::KeepWorldTransform);
 	}
 }
 
-void ABonusMagnet::MagnetBall(const FHitResult& HitResult)
+void ABonusMagnet::Activate()
 {
-	if (Paddle && Paddle == HitResult.GetActor())
+	if (Paddle->CurrentBall)
 	{
-		Paddle->CurrentBall->bMovement = false;
-		Paddle->CurrentBall->AttachToActor(Paddle, FAttachmentTransformRules::KeepWorldTransform);
+		Paddle->CurrentBall->OnBallHit.AddDynamic(this, &ABonusMagnet::MagnetBall);
 	}
 }

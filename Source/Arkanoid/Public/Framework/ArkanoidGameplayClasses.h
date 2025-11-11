@@ -4,6 +4,7 @@
 #include "Engine/DataAsset.h"
 #include "ArkanoidGameplayClasses.generated.h"
 
+class AArkanoidPC;
 class APaddle;
 class AArkanoidGM;
 class AArkanoidPS;
@@ -19,7 +20,8 @@ class ARKANOID_API UArkanoidGameplayClasses : public UDataAsset
 public:
 	UArkanoidGI* ArkanoidGI = nullptr;
 	AArkanoidGM* ArkanoidGM = nullptr;
+	AArkanoidPC* ArkanoidPC = nullptr;
 	AArkanoidHUD* ArkanoidHUD = nullptr;
 	AArkanoidPS* ArkanoidPS = nullptr;
-	APaddle* Paddle = nullptr;
+	APaddle* ArkanoidP = nullptr;
 };

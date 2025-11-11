@@ -2,68 +2,47 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/SaveAndLoadGame.h"
+#include "Interface/StartEvents.h"
 #include "Bonus.generated.h"
 
 class APaddle;
 
-// Тип бонуса в зависимости от длительности действия
-UENUM(BlueprintType)
-enum ETypeBonusByTime
-{
-	TemporaryByTime, Infinitive, TemporaryByCondition, Instant
-};
-
-UCLASS(Blueprintable, Abstract)
-class ARKANOID_API ABonus : public AActor
+UCLASS(Abstract)
+class ARKANOID_API ABonus : public AActor, public IStartEvents, public ISaveAndLoadGame
 {
 	GENERATED_BODY()
 
-	//					Parent:
-
-	// Variable
-
-	// Function
 public:
 	ABonus();
 
+	virtual void Activate()	{};
+	void ActiveMove(bool Move);
+	
+	UPROPERTY(EditAnywhere)	UStaticMeshComponent* BonusMesh = nullptr;
+	UPROPERTY()	APaddle* Paddle = nullptr;
+	UPROPERTY(EditAnywhere)	float Value = 1.0f;
+	
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(const float DeltaTime) override;
+
+	virtual void StartGame() override;
+
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
-	//					Gameplay:
+	virtual void BonusTake();
+	
+	virtual USaveGame* Save(USaveGame* BaseSaveObject = nullptr) override;
+	virtual void FindReferences(const USaveGame*& SaveGameObject, const TMap<FString, AActor*>& ExistActors) override;
+	virtual void Load(const USaveGame*& SaveGameObject) override;
 
-	// Variable
-protected:
-	UPROPERTY(EditDefaultsOnly)
-	USoundWave* SoundActivation = nullptr;
-	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* BonusMesh = nullptr;
-	UPROPERTY(EditAnywhere)
-	float BonusSpeed = 1000.0f;
-	UPROPERTY(EditAnywhere)
-	float Duration = 10.0f;
-	UPROPERTY(EditAnywhere)
-	float Value = 10.0f;
-
-	ETypeBonusByTime TypeBonusByTime = Infinitive;
 	FTimerHandle Timer;
-	APaddle* Paddle = nullptr;
-	FVector VectorMove = FVector(-1.0f, 0.0f, 0.0f);
-	bool bInteractionPaddle = false;
-	bool bReplaceOldBonus = false;
-
+	
 private:
-	bool bMove = true;
-
-	// Function
-protected:
-	UFUNCTION()
-	virtual void ResetData(); // Уничтожение бонуса, возвращение персонажу исходных данных 
-
-	virtual void BonusAction(ABonus* OldBonus = nullptr); // Активация бонуса
-	virtual void UpdateBonus(); // Обновление бонуса при подборе такого же бонуса
-
-private:
-	void Move(const float DeltaTime); // Движение бонуса
+	void Move();
+	
+	UPROPERTY(EditDefaultsOnly)	USoundWave* SoundActivation = nullptr;
+	UPROPERTY(EditAnywhere)	float BonusSpeed = 1000.0f;
+	
+	FVector VectorMove = FVector(-1.f, 0.f, 0.f);
 };

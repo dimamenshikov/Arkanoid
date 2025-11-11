@@ -1,12 +1,8 @@
 ﻿#include "Arkanoid/Public/World/KillZone.h"
 #include "Components/BoxComponent.h"
 
-//					Parent:
-
 AKillZone::AKillZone()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	SetRootComponent(SceneRoot);
 

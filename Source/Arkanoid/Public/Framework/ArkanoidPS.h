@@ -14,17 +14,15 @@ class ARKANOID_API AArkanoidPS : public APlayerState
 {
 	GENERATED_BODY()
 
+public:
+	UFUNCTION()	void ChangePlayerScore(const int32 Amount);
+	
+	UPROPERTY()	FOnPlayerScoreChange OnPlayerScoreChange;
+	
+	int32 PlayerScore = 0;
+	
 protected:
-	UPROPERTY(EditDefaultsOnly)
-	UArkanoidGameplayClasses* GameplayClasses = nullptr;
-
 	virtual void BeginPlay() override;
 
-public:
-	int32 PlayerScore = 0;
-	UPROPERTY()
-	FOnPlayerScoreChange OnPlayerScoreChange;
-
-	UFUNCTION()
-	void ChangePlayerScore(const int32 Amount);
+	UPROPERTY(EditDefaultsOnly)	UArkanoidGameplayClasses* GameplayClasses = nullptr;
 };

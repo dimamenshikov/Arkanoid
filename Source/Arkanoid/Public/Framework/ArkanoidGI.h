@@ -4,36 +4,46 @@
 #include "Engine/GameInstance.h"
 #include "ArkanoidGI.generated.h"
 
+class UMainSave;
 class UArkanoidGameplayClasses;
-class USaveSlot;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelLoad);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStartGame);
+class USlotSave;
 
 UCLASS(Abstract)
 class ARKANOID_API UArkanoidGI : public UGameInstance
 {
 	GENERATED_BODY()
 
-private:
-	FString SlotName = "Main";
-
-protected:
-	UPROPERTY(EditDefaultsOnly)
-	UArkanoidGameplayClasses* GameplayClasses = nullptr;
-
-	virtual void Init() override;
-
 public:
-	FOnLevelLoad OnLevelLoad;
-	FOnStartGame OnStartGame;
-
-	UPROPERTY()
-	USaveSlot* SaveSlot = nullptr;
-	int32 Record = 0;
-
+	void AddLives(const int32 AddLives);
 	void SaveGame();
-	void LoadGame();
+	void LoadGame(const FString& SlotName);
 	void ClearRecord();
+	void DeleteSlot(const FString& SlotName);
+	void Pause(bool Pause);
+
+	UPROPERTY()	UMainSave* MainSave = nullptr;
+	UPROPERTY(EditDefaultsOnly)	TArray<FString> Levels;
+	
+	int32 Record = 0;
+	int32 Score = 0;
+	int32 Lives = 3;
+	bool LevelLoad = false;
+	bool StartGame = false;
+	bool CanSaveGame = true;
+	bool CanSaveTime = true;
+	
+protected:
+	virtual void Init() override;
+	virtual void LoadComplete(const float LoadTime, const FString& MapName) override;
+
+private:
+	void LoadLevel();
+	
+	UPROPERTY(EditDefaultsOnly)	UArkanoidGameplayClasses* GameplayClasses = nullptr;
+	
+	UPROPERTY()	USlotSave* SlotSave = nullptr;
+
+	FTimerHandle Timer;
+	FString LoadingSlot = " ";
+	bool TimerCanSaveActive = false;
 };

@@ -1,34 +1,31 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Arkanoid/Public/Bonuses/Bonus.h"
+#include "Bonuses/BonusInfinitive.h"
 #include "BonusNewBall.generated.h"
 
 class ABall;
 
 UCLASS(Abstract)
-class ARKANOID_API ABonusNewBall : public ABonus
+class ARKANOID_API ABonusNewBall : public ABonusInfinitive
 {
 	GENERATED_BODY()
 
-	//					Gameplay:
-
-	// Variable
-private:
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<ABall> BallClass = nullptr;
-	
-	TArray<ABall*> NewBalls;
-
-	// Function
-private:
-	UFUNCTION()
-	void StartMove();
-	UFUNCTION()
-	void BallDead(AActor* Destroyed);
-
 protected:
-	virtual void BonusAction(ABonus* OldBonus) override;
-	virtual void UpdateBonus() override;
-	virtual void ResetData() override;
+	virtual void Update() override;
+	virtual void Activate() override;
+	virtual void DeleteBonus() override;
+	
+	virtual USaveGame* Save(USaveGame* BaseSaveObject = nullptr) override;
+	virtual void FindReferences(const USaveGame*& SaveGameObject, const TMap<FString, AActor*>& ExistActors) override;
+	virtual void Load(const USaveGame*& SaveGameObject) override;
+
+private:
+	UFUNCTION()	void StartMove();
+	UFUNCTION()	void BallDead(AActor* Destroyed);
+	
+	UPROPERTY()	TArray<ABall*> NewBalls;
+	UPROPERTY(EditDefaultsOnly)	TSubclassOf<ABall> BallClass = nullptr;
+	
+	bool bCanUpdate = true;
 };

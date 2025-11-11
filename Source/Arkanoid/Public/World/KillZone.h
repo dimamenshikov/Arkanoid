@@ -13,10 +13,11 @@ class ARKANOID_API AKillZone : public AActor
 
 public:
 	AKillZone();
-	
+
 protected:
-	UBoxComponent* KillZone = nullptr;
-	USceneComponent* SceneRoot = nullptr;
-	
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+private:
+	USceneComponent* SceneRoot = nullptr;
+	UBoxComponent* KillZone = nullptr;
 };

@@ -1,32 +1,18 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Arkanoid/Public/Bonuses/Bonus.h"
+#include "Bonuses/BonusTemporary.h"
 #include "BonusShield.generated.h"
 
 UCLASS(Abstract)
-class ARKANOID_API ABonusShield : public ABonus
+class ARKANOID_API ABonusShield : public ABonusTemporary
 {
 	GENERATED_BODY()
 
-	//					Parent:
-
-	// Variable
-
-	// Function
-public:
-	ABonusShield();
-
-	//					Gameplay:
-
-	// Variable
-private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
-	UStaticMesh* ShieldMesh = nullptr;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
-	UMaterialInterface* ShieldMaterial = nullptr;
-
-	// Function
 protected:
-	virtual void BonusAction(ABonus* OldBonus) override;
+	virtual void Activate() override;
+	
+private:
+	UPROPERTY(EditAnywhere)	UStaticMesh* ShieldMesh = nullptr;
+	UPROPERTY(EditAnywhere)	UMaterialInterface* ShieldMaterial = nullptr;
 };

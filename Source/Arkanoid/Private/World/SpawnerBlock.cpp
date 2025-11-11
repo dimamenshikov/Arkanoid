@@ -1,10 +1,9 @@
 ﻿#include "Arkanoid/Public/World/SpawnerBlock.h"
 #include "Arkanoid/Public/Components/LifeBlock.h"
-#include "Arkanoid/Public/Framework/ArkanoidGM.h"
 #include "Arkanoid/Public/World/Block.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-
-//					Parent:
+#include "SaveClasses/SpawnerBlock_S.h" 
 
 ASpawnerBlock::ASpawnerBlock()
 {
@@ -12,6 +11,23 @@ ASpawnerBlock::ASpawnerBlock()
 
 	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	SetRootComponent(Scene);
+}
+
+void ASpawnerBlock::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	ClearComponents();
+	CreateComponent();
+}
+
+void ASpawnerBlock::LevelLoad()
+{
+	if (!LoadingComplete)
+	{
+		SpawnBlock();
+	}
+	ClearComponents();
 }
 
 void ASpawnerBlock::CreateComponent()
@@ -86,6 +102,8 @@ void ASpawnerBlock::ClearComponents()
 
 void ASpawnerBlock::SpawnBlock()
 {
+	if (!BlockActors.IsEmpty()) return;
+
 	for (UStaticMeshComponent* PreviewMesh : Components)
 	{
 		if (PreviewMesh)
@@ -98,6 +116,7 @@ void ASpawnerBlock::SpawnBlock()
 					                        ? GetBonusClass()
 					                        : nullptr;
 				CurrentBlock->LifeComponent->Life = Life;
+				CurrentBlock->Score *= 1 + static_cast<float>(Life) / 50;
 				const float Alpha = static_cast<float>(CurrentBlock->LifeComponent->GetLife() - 1) / (CurrentBlock->
 					LifeComponent->MaxLife - 1);
 				CurrentBlock->Material->SetVectorParameterValue(
@@ -115,27 +134,6 @@ void ASpawnerBlock::SpawnBlock()
 void ASpawnerBlock::OnBlockDestroyed(AActor* DestroyedBlock)
 {
 	BlockActors.Remove(Cast<ABlock>(DestroyedBlock));
-
-	if (auto _GameMode = GetWorld()->GetAuthGameMode<AArkanoidGM>(); BlockActors.IsEmpty() && _GameMode)
-	{
-		_GameMode->GameEnd(true);
-	}
-}
-
-void ASpawnerBlock::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-
-	ClearComponents();
-	CreateComponent();
-}
-
-void ASpawnerBlock::BeginPlay()
-{
-	Super::BeginPlay();
-
-	SpawnBlock();
-	ClearComponents();
 }
 
 TSubclassOf<ABonus> ASpawnerBlock::GetBonusClass() const
@@ -162,4 +160,27 @@ TSubclassOf<ABonus> ASpawnerBlock::GetBonusClass() const
 		return nullptr;
 	}
 	return nullptr;
+}
+
+USaveGame* ASpawnerBlock::Save(USaveGame* BaseSaveObject)
+{
+	INIT_SAVE_OBJECT(USpawnerBlock_S, SpawnerBlock_S);
+	for (auto Block : BlockActors)
+	{
+		SpawnerBlock_S->Blocks.Add(Block->GetName());
+	}
+	return ISaveAndLoadGame::Save(SpawnerBlock_S);
+}
+
+void ASpawnerBlock::FindReferences(const USaveGame*& SaveGameObject, const TMap<FString, AActor*>& ExistActors)
+{
+	ISaveAndLoadGame::FindReferences(SaveGameObject, ExistActors);
+	auto SpawnerBlock_S = Cast<USpawnerBlock_S>(SaveGameObject);
+	BlockActors.Empty();
+	for (auto& BlockName : SpawnerBlock_S->Blocks)
+	{
+		auto Block = Cast<ABlock>(ExistActors.FindRef(BlockName));
+		Block->OnDestroyed.AddDynamic(this, &ASpawnerBlock::OnBlockDestroyed);
+		BlockActors.Add(Block);
+	}
 }

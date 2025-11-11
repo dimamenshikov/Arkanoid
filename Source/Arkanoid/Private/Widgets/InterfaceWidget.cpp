@@ -1,6 +1,11 @@
 ﻿#include "Arkanoid/Public/Widgets/InterfaceWidget.h"
 #include "Components/TextBlock.h"
 
+void UInterfaceWidget::UpdateLives(const int32 NewLives)
+{
+	Lives_T->SetText(FText::FromString(FString::Printf(TEXT("Жизни: %i"), NewLives)));
+}
+
 void UInterfaceWidget::UpdateScore(const int32 NewScore, const int32 NewRecord)
 {
 	FString ScoreString = FString::Printf(TEXT("Счёт: %03d"), NewScore);

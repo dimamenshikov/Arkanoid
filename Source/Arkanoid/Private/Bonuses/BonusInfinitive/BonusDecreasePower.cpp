@@ -1,41 +1,28 @@
 ﻿#include "Arkanoid/Public/Bonuses/BonusInfinitive/BonusDecreasePower.h"
 #include "Arkanoid/Public/Framework/Paddle.h"
 #include "Arkanoid/Public/World/Ball.h"
-
-//					Parent:
-
-class ABonus;
+#include "Framework/ArkanoidGameplayClasses.h"
+#include "Framework/ArkanoidGI.h"
 
 ABonusDecreasePower::ABonusDecreasePower()
 {
 	Value = 2.0f;
 }
 
-//					Gameplay:
-
-void ABonusDecreasePower::BonusAction(ABonus* OldBonus)
+void ABonusDecreasePower::Activate()
 {
-	Super::BonusAction();
-
-	UpdateBonus();
-}
-
-void ABonusDecreasePower::UpdateBonus()
-{
-	Super::UpdateBonus();
-
-	if (Paddle && Paddle->CurrentBall && Paddle->CurrentBall->Power - Value > Paddle->GameplaySetting.MinPower)
+	if (Paddle->CurrentBall && Paddle->GameplayClasses->ArkanoidGI->LevelLoad)
 	{
-		Paddle->CurrentBall->Power -= Value;
+		Paddle->CurrentBall->Power = FMath::Max(Paddle->GameplaySetting.MinPower, Paddle->CurrentBall->Power - Value);
 	}
 }
 
-void ABonusDecreasePower::ResetData()
+void ABonusDecreasePower::DeleteBonus()
 {
 	if (Paddle && Paddle->CurrentBall)
 	{
 		Paddle->CurrentBall->Power = Paddle->GameplaySetting.DefaultPower;
 	}
 
-	Super::ResetData();
+	Super::DeleteBonus();
 }

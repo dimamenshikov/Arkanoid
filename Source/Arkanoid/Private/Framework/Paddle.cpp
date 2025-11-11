@@ -1,21 +1,17 @@
 ﻿#include "Arkanoid/Public/Framework/Paddle.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
-#include "EnhancedInputSubsystems.h"
-#include "EnhancedInputComponent.h"
 #include "Arkanoid/Public/Framework/ArkanoidGameplayClasses.h"
 #include "Arkanoid/Public/Framework/ArkanoidGM.h"
 #include "Arkanoid/Public/World/Ball.h"
 #include "Camera/CameraComponent.h"
+#include "Framework/ArkanoidGI.h"
+#include "SaveClasses/Paddle_S.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
-//					Parent:
-
 APaddle::APaddle()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
 	BoxCollisionRoot = CreateDefaultSubobject<UBoxComponent>(TEXT("Root"));
 	SetRootComponent(BoxCollisionRoot);
 
@@ -48,10 +44,7 @@ APaddle::APaddle()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(BoxCollisionRoot);
-	if (Camera)
-	{
-		Camera->SetAbsolute(true, true, true);
-	}
+	Camera->SetAbsolute(true, true, true);
 }
 
 void APaddle::OnConstruction(const FTransform& Transform)
@@ -71,23 +64,16 @@ void APaddle::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GameplayClasses->Paddle = this;
+	GameplayClasses->ArkanoidP = this;
 
 	Camera->SetWorldRotation(FRotator(-90.0f, 0.0f, 0.0f));
 	Camera->SetWorldLocation(FVector(0.0f, 0.0f, 6000.0f));
 	Camera->SetFieldOfView(50.0f);
+}
 
+void APaddle::LevelLoad()
+{
 	SpawnBall();
-	SpawnBallLives();
-
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (const auto System = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-			PlayerController->GetLocalPlayer()))
-		{
-			System->AddMappingContext(Management, 0);
-		}
-	}
 }
 
 void APaddle::Interaction(ABall* Ball, const FHitResult& HitResult)
@@ -109,101 +95,12 @@ void APaddle::Interaction(ABall* Ball, const FHitResult& HitResult)
 	                                                            FVector::ForwardVector);
 }
 
-//					PaddleBody:
-
-void APaddle::SpawnBallLives()
-{
-	if (Meshes)
-	{
-		for (auto BallLife : BallLives)
-		{
-			BallLife->DestroyComponent();
-		}
-		BallLives.Empty();
-
-		for (int32 i = 0; i < Lives - 1; ++i)
-		{
-			if (UStaticMeshComponent* NewMeshComponent = NewObject<UStaticMeshComponent>(
-				this, *FString::Printf(TEXT("LifeMesh %d"), i + 1)))
-			{
-				NewMeshComponent->SetStaticMesh(Meshes);
-				NewMeshComponent->SetAbsolute(false, false, true);
-				NewMeshComponent->SetWorldScale3D(FVector(0.5f));
-				NewMeshComponent->SetupAttachment(StaticMesh);
-				NewMeshComponent->RegisterComponent();
-				NewMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-				BallLives.Add(NewMeshComponent);
-			}
-		}
-
-		UpdateBallLives();
-	}
-}
-
-void APaddle::UpdateBallLives()
-{
-	if (!BallLives.IsEmpty())
-	{
-		constexpr float BallSpacing = 30.0f;
-		const int8 NumBalls = BallLives.Num();
-
-		const float TotalWidth = (NumBalls - 1) * BallSpacing;
-		const float StartOffset = -TotalWidth / 2;
-
-		for (int8 i = 0; i < NumBalls; ++i)
-		{
-			const float Offset = StartOffset + i * BallSpacing;
-			if (IsValid(BallLives[i]))
-			{
-				BallLives[i]->SetRelativeLocation(FVector(-100.0f, Offset, 0.0f));
-			}
-		}
-	}
-}
-
-//					Management:
-
-void APaddle::Start()
-{
-	SpawnBall();
-	if (CurrentBall && CurrentBall->bMovement == false)
-	{
-		CurrentBall->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		CurrentBall->bMovement = true;
-	}
-	else
-	{
-		OnAction.Broadcast();
-	}
-}
-
-void APaddle::Move(const FInputActionValue& Value)
-{
-	FVector VectorMove = FVector(Value.Get<FVector2D>().Y, Value.Get<FVector2D>().X, 0.0f);
-
-	VectorMove = UKismetMathLibrary::Quat_RotateVector(FQuat(FRotator(0.0f, CameraRotationYaw, 0.0f)), VectorMove);
-
-	if (Controller)
-	{
-		AddActorLocalOffset(FVector(0.0f, PaddleSpeed * FVector::DotProduct(VectorMove, GetActorRightVector()), 0.0f),
-		                    true);
-	}
-}
-
-void APaddle::PauseGame()
-{
-	if (GameplayClasses->ArkanoidGM)
-		GameplayClasses->ArkanoidGM->SetGamePause();
-}
-
 void APaddle::SpawnBall()
 {
-	if (ClassBall && !CurrentBall && Lives)
+	if (ClassBall && !CurrentBall && GameplayClasses->ArkanoidGI->Lives > 0)
 	{
-		const FVector SpawnLocation = Arrow->GetComponentLocation();
-		const FRotator SpawnRotation = Arrow->GetComponentRotation();
-
-		if (CurrentBall = GetWorld()->SpawnActor<ABall>(ClassBall, SpawnLocation, SpawnRotation); CurrentBall)
+		if (CurrentBall = GetWorld()->SpawnActor<ABall>(ClassBall, Arrow->GetComponentLocation(),
+		                                                Arrow->GetComponentRotation()); CurrentBall)
 		{
 			CurrentBall->OnDestroyed.AddDynamic(this, &APaddle::BallDead);
 			CurrentBall->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
@@ -212,50 +109,39 @@ void APaddle::SpawnBall()
 	}
 }
 
-void APaddle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	if (const auto EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
-	{
-		EnhancedInputComponent->BindAction(IA_Start, ETriggerEvent::Started, this, &APaddle::Start);
-		EnhancedInputComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &APaddle::Move);
-		EnhancedInputComponent->BindAction(IA_PauseGame, ETriggerEvent::Started, this, &APaddle::PauseGame);
-	}
-}
-
-//					Gameplay:
-
 void APaddle::BallDead(AActor* Destroyed)
 {
 	CurrentBall = nullptr;
-	Lives = FMath::Max(Lives - 1, 0);
+	GameplayClasses->ArkanoidGI->AddLives(-1);
+	OnLifeChange.Broadcast(GameplayClasses->ArkanoidGI->Lives);
 
 	UGameplayStatics::PlaySound2D(this, SoundBallDeath);
-
-	if (Lives)
+	
+	if (GameplayClasses->ArkanoidGI->Lives == 0)
 	{
-		OnBallDead.Broadcast();
-		Bonuses.Empty();
-
-		BallLives[Lives - 1]->DestroyComponent();
-		BallLives.RemoveAt(Lives - 1);
-		UpdateBallLives();
-		SpawnBall();
+		GameplayClasses->ArkanoidGM->GameEnd(false);
+		return;
 	}
-	else
-	{
-		if (GameplayClasses->ArkanoidGM)
-			GameplayClasses->ArkanoidGM->GameEnd(false);
-	}
+	
+	OnBallDead.Broadcast();
+	Bonuses.Empty();
+	SpawnBall();
 }
 
-void APaddle::SetLives(const int32 Value)
+USaveGame* APaddle::Save(USaveGame* BaseSaveObject)
 {
-	Lives = FMath::Max(0, Lives + Value);
-
-	if (Lives)
+	INIT_SAVE_OBJECT(UPaddle_S, Paddle_S);
+	if (CurrentBall)
 	{
-		SpawnBallLives();
+		Paddle_S->CurrentBallName = CurrentBall->GetName();
 	}
+	return Paddle_S;
+}
+
+void APaddle::FindReferences(const USaveGame*& SaveGameObject, const TMap<FString, AActor*>& ExistActors)
+{
+	ISaveAndLoadGame::FindReferences(SaveGameObject, ExistActors);
+	auto Paddle_S = Cast<UPaddle_S>(SaveGameObject);
+	CurrentBall = Cast<ABall>(ExistActors.FindRef(Paddle_S->CurrentBallName));
+	CurrentBall->OnDestroyed.AddDynamic(this, &APaddle::BallDead);
 }

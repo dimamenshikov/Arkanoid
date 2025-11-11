@@ -1,14 +1,5 @@
 ﻿#include "Arkanoid/Public/Components/LifeBlock.h"
 
-//					Parent:
-
-ULifeBlock::ULifeBlock()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-//					Gameplay:
-
 void ULifeBlock::Damage(const int32 Damage)
 {
 	Life = FMath::Max(Life - Damage, 0);

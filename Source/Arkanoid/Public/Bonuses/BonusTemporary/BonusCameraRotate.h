@@ -1,35 +1,24 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Arkanoid/Public/Bonuses/Bonus.h"
+#include "Bonuses/BonusTemporary.h"
 #include "BonusCameraRotate.generated.h"
 
 UCLASS(Abstract)
-class ARKANOID_API ABonusCameraRotate : public ABonus
+class ARKANOID_API ABonusCameraRotate : public ABonusTemporary
 {
 	GENERATED_BODY()
-	
-	//					Parent:
 
-	// Variable
-
-	// Function
-public:
-	ABonusCameraRotate();
-
-	//					Gameplay:
-
-	// Variable
-private:
-	FTimerHandle TimerCameraRotate;
-	float CameraSpeed = 30.0f;
-	int32 K = 1;
-
-	// Function
 protected:
-	virtual void BonusAction(ABonus* OldBonus = nullptr) override;
-	virtual void ResetData() override;
+	virtual void Update() override;
+	virtual void Activate() override;
+	virtual void DeleteBonus() override;
 
+	virtual USaveGame* Save(USaveGame* BaseSaveObject = nullptr) override;
+	virtual void Load(const USaveGame*& SaveGameObject) override;
+	
 private:
-	void CameraRotate(); // Вращение камеры
+	void CameraRotate();
+	
+	float CameraSpeed = 30.0f;
 };

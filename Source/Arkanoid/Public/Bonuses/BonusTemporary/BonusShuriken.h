@@ -1,43 +1,28 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Arkanoid/Public/Bonuses/Bonus.h"
+#include "Bonuses/BonusTemporary.h"
 #include "BonusShuriken.generated.h"
 
 class ABall;
 
 UCLASS(Abstract)
-class ARKANOID_API ABonusShuriken : public ABonus
+class ARKANOID_API ABonusShuriken : public ABonusTemporary
 {
 	GENERATED_BODY()
 
-	//					Parent:
+protected:
+	UFUNCTION()	void Shuriken(const FHitResult& Hit);
 
-	// Variable
-
-	// Function
-public:
-	ABonusShuriken();
-
-	//					Gameplay:
-
-	// Variable
+	virtual void Activate() override;
+	virtual void DeleteBonus() override;
+	
+	virtual USaveGame* Save(USaveGame* BaseSaveObject = nullptr) override;
+	virtual void FindReferences(const USaveGame*& SaveGameObject, const TMap<FString, AActor*>& ExistActors) override;
+	virtual void Load(const USaveGame*& SaveGameObject) override;
+	
 private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
-	UStaticMesh* ShurikenMesh = nullptr;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
-	UMaterial* ShurikenMaterial = nullptr;
-
 	UStaticMesh* OldStaticMesh = nullptr;
 	UMaterialInterface* OldMaterial = nullptr;
 	FVector OldScale;
-
-	// Function
-protected:
-	UFUNCTION()
-	void Shuriken(const FHitResult& Hit); // Уничтожение блока при столкновении
-
-	virtual void BonusAction(ABonus* OldBonus) override;
-	virtual void ResetData() override;
 };
-

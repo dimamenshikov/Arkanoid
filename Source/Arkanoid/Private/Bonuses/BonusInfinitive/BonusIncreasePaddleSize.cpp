@@ -1,35 +1,24 @@
 ﻿#include "Arkanoid/Public/Bonuses/BonusInfinitive/BonusIncreasePaddleSize.h"
 #include "Arkanoid/Public/Framework/Paddle.h"
+#include "Bonuses/BonusInfinitive/BonusDecreasePaddleSize.h"
 #include "Components/BoxComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
-
-//					Parent:
 
 ABonusIncreasePaddleSize::ABonusIncreasePaddleSize()
 {
 	Value = 100.0f;
 }
 
-//					Gameplay:
-
-void ABonusIncreasePaddleSize::BonusAction(ABonus* OldBonus)
+void ABonusIncreasePaddleSize::Activate()
 {
-	Super::BonusAction();
+	float CurrentPaddleSize = (Paddle->StaticMesh->GetComponentScale().Y + 0.4f) * 100;
+	float NewSize = FMath::Min(Paddle->GameplaySetting.MaxSizePaddle, CurrentPaddleSize + Value);
 
-	UpdateBonus();
-}
-
-void ABonusIncreasePaddleSize::UpdateBonus()
-{
-	Super::UpdateBonus();
-
-	FVector PaddleScale = Paddle->StaticMesh->GetComponentScale();
-	const FVector PaddleLocation = Paddle->GetActorLocation();
-	const float NewSize = (PaddleScale.Y + 0.4f) * 100 + Value;
-
-	if (Paddle && NewSize < Paddle->GameplaySetting.MaxSizePaddle)
+	if (NewSize != CurrentPaddleSize)
 	{
+		const FVector PaddleLocation = Paddle->GetActorLocation();
+		FVector PaddleScale = Paddle->StaticMesh->GetComponentScale();
 		FVector End = FVector(0.0f, NewSize / 2, 0.0f) + PaddleLocation;
 		FHitResult Hit;
 		const TArray<AActor*> IgnoreActors{Paddle};
@@ -53,12 +42,27 @@ void ABonusIncreasePaddleSize::UpdateBonus()
 	}
 }
 
-void ABonusIncreasePaddleSize::ResetData()
+void ABonusIncreasePaddleSize::DeleteBonus()
 {
 	FVector PaddleScale = Paddle->StaticMesh->GetComponentScale();
 	PaddleScale.Y = Paddle->GameplaySetting.DefaultSizePaddle / 100 - 0.4f;
 	Paddle->StaticMesh->SetWorldScale3D(FVector(PaddleScale));
 	Paddle->BoxCollisionRoot->SetBoxExtent(FVector(20.0f, Paddle->GameplaySetting.DefaultSizePaddle / 2, 25.0f));
 
-	Super::ResetData();
+	Super::DeleteBonus();
+}
+
+USaveGame* ABonusIncreasePaddleSize::Save(USaveGame* BaseSaveObject)
+{
+	if (Paddle)
+	{
+		Value = (Paddle->StaticMesh->GetComponentScale().Y + 0.4f) * 100 - Paddle->GameplaySetting.DefaultSizePaddle;
+	}
+	return Super::Save(BaseSaveObject);
+}
+
+void ABonusIncreasePaddleSize::Load(const USaveGame*& SaveGameObject)
+{
+	Super::Load(SaveGameObject);
+	Value = 100.0f;
 }

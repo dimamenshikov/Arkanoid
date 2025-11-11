@@ -2,24 +2,37 @@
 #include "Arkanoid/Public/Framework/Paddle.h"
 #include "Camera/CameraComponent.h"
 
-//					Parent:
-
-ABonusCameraRotate::ABonusCameraRotate()
+void ABonusCameraRotate::Update()
 {
-	TypeBonusByTime = TemporaryByTime;
+	Super::Update();
+
+	if (LoadingComplete)
+	{
+		LoadingComplete = false;
+		Activate();
+	}
 }
 
-//					Gameplay:
-
-void ABonusCameraRotate::BonusAction(ABonus* OldBonus)
+void ABonusCameraRotate::CameraRotate()
 {
-	Super::BonusAction();
-
-	const float Time = GetWorld()->GetDeltaSeconds();
-	GetWorldTimerManager().SetTimer(TimerCameraRotate, this, &ABonusCameraRotate::CameraRotate, Time, true);
+	const float Time = GetWorld()->DeltaTimeSeconds;
+	Paddle->Camera->AddWorldRotation(FRotator(0.0f, Time * CameraSpeed, 0.0f));
+	if (Time * CameraSpeed + Paddle->CameraRotationYaw > 360.0f)
+	{
+		Paddle->CameraRotationYaw += Time * CameraSpeed - 360;
+	}
+	else
+	{
+		Paddle->CameraRotationYaw += Time * CameraSpeed;
+	}
 }
 
-void ABonusCameraRotate::ResetData()
+void ABonusCameraRotate::Activate()
+{
+	GetWorldTimerManager().SetTimer(Timer, this, &ABonusCameraRotate::CameraRotate, GetWorld()->DeltaTimeSeconds, true);
+}
+
+void ABonusCameraRotate::DeleteBonus()
 {
 	if (Paddle && Paddle->Camera)
 	{
@@ -27,22 +40,24 @@ void ABonusCameraRotate::ResetData()
 		Paddle->CameraRotationYaw = 0.0f;
 	}
 
-	Super::ResetData();
+	Super::DeleteBonus();
 }
 
-void ABonusCameraRotate::CameraRotate()
+USaveGame* ABonusCameraRotate::Save(USaveGame* BaseSaveObject)
 {
-	if (Paddle && Paddle->Camera)
+	if (Paddle)
 	{
-		const float Time = GetWorld()->GetDeltaSeconds();
-		Paddle->Camera->AddWorldRotation(FRotator(0.0f, Time * CameraSpeed, 0.0f));
-		if (Time * CameraSpeed * K + Paddle->CameraRotationYaw > 360.0f)
-		{
-			Paddle->CameraRotationYaw += Time * CameraSpeed * K - 360;
-		}
-		else
-		{
-			Paddle->CameraRotationYaw += Time * CameraSpeed * K;
-		}
+		Value = Paddle->CameraRotationYaw;
+	}
+	return Super::Save(BaseSaveObject);
+}
+
+void ABonusCameraRotate::Load(const USaveGame*& SaveGameObject)
+{
+	Super::Load(SaveGameObject);
+	if (Paddle)
+	{
+		Paddle->CameraRotationYaw = Value;
+		Paddle->Camera->SetWorldRotation(FRotator(-90.0f, Value, 0.0f));
 	}
 }

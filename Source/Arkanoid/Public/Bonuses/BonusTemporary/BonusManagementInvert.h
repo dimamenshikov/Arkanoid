@@ -1,18 +1,15 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Arkanoid/Public/Bonuses/Bonus.h"
+#include "Bonuses/BonusTemporary.h"
 #include "BonusManagementInvert.generated.h"
 
 UCLASS(Abstract)
-class ARKANOID_API ABonusManagementInvert : public ABonus
+class ARKANOID_API ABonusManagementInvert : public ABonusTemporary
 {
 	GENERATED_BODY()
 
-public:
-	ABonusManagementInvert();
-
 protected:
-	virtual void BonusAction(ABonus* OldBonus) override;
-	virtual void ResetData() override;
+	virtual void Activate() override;
+	virtual void DeleteBonus() override;
 };

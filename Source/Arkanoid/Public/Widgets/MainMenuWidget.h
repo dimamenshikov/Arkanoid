@@ -4,6 +4,8 @@
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
+class ULoadMenuWidget;
+class UWidgetSwitcher;
 class UButton;
 class UTextBlock;
 
@@ -13,30 +15,27 @@ class ARKANOID_API UMainMenuWidget : public UUserWidget
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(meta = (BindWidget))
-	UButton* Start_B = nullptr;
-	UPROPERTY(meta = (BindWidget))
-	UButton* Quit_B = nullptr;
-	UPROPERTY(meta = (BindWidget))
-	UButton* ZeroRecord_B = nullptr;
-
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Record_T = nullptr;
-
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Start_T = nullptr;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Quit_T = nullptr;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* ZeroRecord_T = nullptr;
-
-public:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
-	UFUNCTION()
-	void StartGame();
-	UFUNCTION()
-	void ClearRecord();
-	UFUNCTION()
-	void QuitGame();
+
+private:
+	UFUNCTION()	void Load();
+	UFUNCTION()	void Back();
+	UFUNCTION()	void StartGame();
+	UFUNCTION()	void ClearRecord();
+	UFUNCTION()	void QuitGame();
+	
+	UPROPERTY(meta = (BindWidget))	UWidgetSwitcher* Switcher = nullptr;
+	UPROPERTY(meta = (BindWidget))	ULoadMenuWidget* LoadMenu = nullptr;
+
+	UPROPERTY(meta = (BindWidget))	UButton* Start_B = nullptr;
+	UPROPERTY(meta = (BindWidget))	UButton* Back_B = nullptr;
+	UPROPERTY(meta = (BindWidget))	UButton* Load_B = nullptr;
+	UPROPERTY(meta = (BindWidget))	UButton* Quit_B = nullptr;
+	UPROPERTY(meta = (BindWidget))	UButton* ZeroRecord_B = nullptr;
+
+	UPROPERTY(meta = (BindWidget))	UTextBlock* Record_T = nullptr;
+	UPROPERTY(meta = (BindWidget))	UTextBlock* Start_T = nullptr;
+	UPROPERTY(meta = (BindWidget))	UTextBlock* Quit_T = nullptr;
+	UPROPERTY(meta = (BindWidget))	UTextBlock* ZeroRecord_T = nullptr;
 };

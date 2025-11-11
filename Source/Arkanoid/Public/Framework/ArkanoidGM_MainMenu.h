@@ -13,11 +13,7 @@ class ARKANOID_API AArkanoidGM_MainMenu : public AGameModeBase
 
 protected:
 	virtual void BeginPlay() override;
-	UMainMenuWidget* MainMenu = nullptr;
-	UPROPERTY(EditDefaultsOnly)
-	USoundWave* LevelMusic = nullptr;
 
-public:
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UUserWidget> MainMenuWidgetClass;
+private:
+	UPROPERTY(EditDefaultsOnly)	USoundWave* LevelMusic = nullptr;
 };

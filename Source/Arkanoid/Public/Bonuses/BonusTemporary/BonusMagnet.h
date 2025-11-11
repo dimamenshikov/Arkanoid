@@ -1,33 +1,19 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Arkanoid/Public/Bonuses/Bonus.h"
+#include "Bonuses/BonusTemporary.h"
 #include "BonusMagnet.generated.h"
 
 class ABall;
 
 UCLASS(Abstract)
-class ARKANOID_API ABonusMagnet : public ABonus
+class ARKANOID_API ABonusMagnet : public ABonusTemporary
 {
 	GENERATED_BODY()
 
-	//					Parent:
-
-	// Variable
-
-	// Function
 public:
-	ABonusMagnet();
-
-	//					Gameplay:
-
-	// Variable
-
-	// Function
-public:
-	UFUNCTION()
-	void MagnetBall(const FHitResult& HitResult); // Прикрепление шара к каретки
-
+	UFUNCTION()	void MagnetBall(const FHitResult& HitResult);
+	
 protected:
-	virtual void BonusAction(ABonus* OldBonus) override;
+	virtual void Activate() override;
 };

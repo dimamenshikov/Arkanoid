@@ -1,12 +1,11 @@
 ﻿#include "Arkanoid/Public/Bonuses/Bonus.h"
 #include "Arkanoid/Public/Framework/Paddle.h"
+#include "Bonuses/SaveClasses/Bonus_S.h"
+#include "Framework/ArkanoidGI.h"
 #include "Kismet/GameplayStatics.h"
-
-//					Parent:
 
 ABonus::ABonus()
 {
-	PrimaryActorTick.bCanEverTick = true;
 	BonusMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BonusMesh"));
 	SetRootComponent(BonusMesh);
 
@@ -17,110 +16,69 @@ void ABonus::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Duration = FMath::Max(Duration, 0.1f);
+	ActiveMove(Cast<UArkanoidGI>(GetGameInstance())->StartGame);
 }
 
-void ABonus::Tick(const float DeltaTime)
+void ABonus::StartGame()
 {
-	Super::Tick(DeltaTime);
-
-	Move(DeltaTime);
+	ActiveMove(Paddle == nullptr);
 }
 
 void ABonus::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
 
-	if (const auto OwnerPaddle = Cast<APaddle>(OtherActor); OwnerPaddle && !bInteractionPaddle)
+	if (Paddle || !Cast<UArkanoidGI>(GetGameInstance())->LevelLoad) return;
+
+	if (Paddle = Cast<APaddle>(OtherActor); Paddle)
 	{
-		bInteractionPaddle = true;
-		Paddle = OwnerPaddle;
-
-		if (TypeBonusByTime == TemporaryByCondition || TypeBonusByTime == Instant)
-		{
-			BonusAction();
-			if (TypeBonusByTime == Instant)
-			{
-				Destroy();
-			}
-		}
-		else
-		{
-			ABonus* OldBonus = nullptr;
-			int32 IndexOldBonus = 0;
-
-			for (IndexOldBonus = 0; IndexOldBonus < Paddle->Bonuses.Num(); ++IndexOldBonus)
-			{
-				if (Paddle->Bonuses[IndexOldBonus]->GetClass() == GetClass())
-				{
-					OldBonus = Paddle->Bonuses[IndexOldBonus];
-					break;
-				}
-			}
-
-			if (OldBonus)
-			{
-				if (bReplaceOldBonus)
-				{
-					Paddle->Bonuses.RemoveAt(IndexOldBonus);
-					Paddle->Bonuses.Add(this);
-					BonusAction(OldBonus);
-					OldBonus->Destroy();
-				}
-				else
-				{
-					OldBonus->UpdateBonus();
-					Destroy();
-				}
-			}
-			else
-			{
-				Paddle->Bonuses.Add(this);
-				BonusAction();
-			}
-
-			if (TypeBonusByTime == TemporaryByTime)
-			{
-				GetWorldTimerManager().SetTimer(Timer, this, &ABonus::ResetData, Duration, false);
-			}
-			Paddle->OnBallDead.AddDynamic(this, &ABonus::ResetData);
-		}
+		UGameplayStatics::PlaySound2D(this, SoundActivation);
+		BonusTake();
 	}
 }
 
-//					Gameplay:
-
-void ABonus::BonusAction(ABonus* OldBonus)
+void ABonus::BonusTake()
 {
-	bMove = false;
+	ActiveMove(false);
+
 	SetActorEnableCollision(false);
 	SetActorHiddenInGame(true);
-	
-	UGameplayStatics::PlaySound2D(this, SoundActivation);
+
+	Activate();
 }
 
-void ABonus::ResetData()
+void ABonus::ActiveMove(bool Move)
 {
-	if (Paddle)
+	if (Move)
 	{
-		Paddle->Bonuses.Remove(this);
+		GetWorldTimerManager().SetTimer(Timer, this, &ABonus::Move, GetWorld()->DeltaTimeSeconds, true);
 	}
-	Destroy();
-}
-
-void ABonus::UpdateBonus()
-{
-	if (TypeBonusByTime == TemporaryByTime)
+	else
 	{
 		GetWorldTimerManager().ClearTimer(Timer);
-		GetWorldTimerManager().SetTimer(Timer, this, &ABonus::ResetData, Duration, false);
 	}
 }
 
-void ABonus::Move(const float DeltaTime)
+void ABonus::Move()
 {
-	if (bMove)
-	{
-		AddActorWorldOffset(VectorMove * BonusSpeed * DeltaTime);
-	}
+	AddActorWorldOffset(VectorMove * BonusSpeed * GetWorld()->DeltaTimeSeconds);
+}
+
+USaveGame* ABonus::Save(USaveGame* BaseSaveObject)
+{
+	INIT_SAVE_OBJECT(UBonus_S, Bonus_S);
+	Bonus_S->Scale = GetActorScale3D();
+	return ISaveAndLoadGame::Save(Bonus_S);
+}
+
+void ABonus::FindReferences(const USaveGame*& SaveGameObject, const TMap<FString, AActor*>& ExistActors)
+{
+	ISaveAndLoadGame::FindReferences(SaveGameObject, ExistActors);
+}
+
+void ABonus::Load(const USaveGame*& SaveGameObject)
+{
+	ISaveAndLoadGame::Load(SaveGameObject);
+	auto Bonus_S = Cast<UBonus_S>(SaveGameObject);
+	SetActorScale3D(Bonus_S->Scale);
 }

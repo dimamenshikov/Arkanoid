@@ -1,43 +1,27 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Arkanoid/Public/Bonuses/Bonus.h"
+#include "Bonuses/BonusTemporary.h"
 #include "BonusNewPaddle.generated.h"
 
 UCLASS(Abstract)
-class ARKANOID_API ABonusNewPaddle : public ABonus
+class ARKANOID_API ABonusNewPaddle : public ABonusTemporary
 {
 	GENERATED_BODY()
 
-	//					Parent:
-
-	// Variable
-
-	// Function
-public:
-	ABonusNewPaddle();
-
 protected:
+	virtual void Activate() override;
+	virtual void Update() override;
+	
 	virtual void NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp,
-						   bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse,
-						   const FHitResult& Hit) override;
+	                       bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse,
+	                       const FHitResult& Hit) override;
 
-	//					Gameplay:
-
-	// Variable
+	virtual void Load(const USaveGame*& SaveGameObject) override;
+	
 private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
-	UStaticMesh* PaddleMesh = nullptr;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
-	UMaterialInterface* PaddleMaterial = nullptr;
-
-	FTimerHandle TimerPaddle;
+	void MovePaddle();
+	
 	float Speed = 500.0f;
-
-	// Function
-protected:
-	virtual void BonusAction(ABonus* OldBonus) override;
-
-private:
-	void MovePaddle(); // Движение новой каретки
+	bool Loading = false;
 };
