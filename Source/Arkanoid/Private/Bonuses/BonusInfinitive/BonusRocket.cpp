@@ -40,12 +40,12 @@ void ABonusRocket::Activate()
 	SetActorHiddenInGame(false);
 	BonusMesh->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 
-	GetWorldTimerManager().SetTimer(Timer, this, &ABonusRocket::MoveRocket, GetWorld()->DeltaTimeSeconds, true);
-}
-
-void ABonusRocket::MoveRocket()
-{
-	AddActorWorldOffset(FVector(SpeedRocket * GetWorld()->DeltaTimeSeconds, 0.0f, 0.0f), true);
+	auto MoveRocket = [this]()-> void
+	{
+		AddActorWorldOffset(FVector(SpeedRocket * GetWorld()->DeltaTimeSeconds, 0.0f, 0.0f), true);
+	};
+	GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateWeakLambda(this, MoveRocket),
+	                                GetWorld()->DeltaTimeSeconds, true);
 }
 
 void ABonusRocket::BonusTake()

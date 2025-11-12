@@ -21,9 +21,11 @@ public:
 	void DeleteSlot(const FString& SlotName);
 	void Pause(bool Pause);
 
-	UPROPERTY()	UMainSave* MainSave = nullptr;
-	UPROPERTY(EditDefaultsOnly)	TArray<FString> Levels;
-	
+	UPROPERTY()
+	UMainSave* MainSave = nullptr;
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FString> Levels;
+
 	int32 Record = 0;
 	int32 Score = 0;
 	int32 Lives = 3;
@@ -31,17 +33,21 @@ public:
 	bool StartGame = false;
 	bool CanSaveGame = true;
 	bool CanSaveTime = true;
-	
+
+	bool FirstLaunch = true;
+
 protected:
 	virtual void Init() override;
 	virtual void LoadComplete(const float LoadTime, const FString& MapName) override;
 
 private:
 	void LoadLevel();
-	
-	UPROPERTY(EditDefaultsOnly)	UArkanoidGameplayClasses* GameplayClasses = nullptr;
-	
-	UPROPERTY()	USlotSave* SlotSave = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	UArkanoidGameplayClasses* GameplayClasses = nullptr;
+
+	UPROPERTY()
+	USlotSave* SlotSave = nullptr;
 
 	FTimerHandle Timer;
 	FString LoadingSlot = " ";

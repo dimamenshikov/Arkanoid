@@ -39,8 +39,6 @@ protected:
 	FTimerHandle Timer;
 	
 private:
-	void Move();
-	
 	UPROPERTY(EditDefaultsOnly)	USoundWave* SoundActivation = nullptr;
 	UPROPERTY(EditAnywhere)	float BonusSpeed = 1000.0f;
 	

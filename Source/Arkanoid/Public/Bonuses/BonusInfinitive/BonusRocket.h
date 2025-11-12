@@ -21,8 +21,6 @@ protected:
 	                       const FHitResult& Hit) override;
 
 private:
-	void MoveRocket();
-
 	UPROPERTY(EditDefaultsOnly)	UParticleSystem* EffectDestroy = nullptr;
 
 	float SpeedRocket = 1000.0f;

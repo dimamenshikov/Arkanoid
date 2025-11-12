@@ -47,21 +47,21 @@ void ABonus::BonusTake()
 	Activate();
 }
 
-void ABonus::ActiveMove(bool Move)
+void ABonus::ActiveMove(bool bMove)
 {
-	if (Move)
+	if (bMove)
 	{
-		GetWorldTimerManager().SetTimer(Timer, this, &ABonus::Move, GetWorld()->DeltaTimeSeconds, true);
+		auto Move = [this]()-> void
+		{
+			AddActorWorldOffset(VectorMove * BonusSpeed * GetWorld()->DeltaTimeSeconds);
+		};
+		GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateWeakLambda(this, Move),
+		                                GetWorld()->DeltaTimeSeconds, true);
 	}
 	else
 	{
 		GetWorldTimerManager().ClearTimer(Timer);
 	}
-}
-
-void ABonus::Move()
-{
-	AddActorWorldOffset(VectorMove * BonusSpeed * GetWorld()->DeltaTimeSeconds);
 }
 
 USaveGame* ABonus::Save(USaveGame* BaseSaveObject)
