@@ -4,6 +4,7 @@
 
 
 1.	Название проекта: «Арканоид»
+<img width="709" height="399" alt="image" src="https://github.com/user-attachments/assets/fea9fb17-9379-4690-9542-186f178fb194" />
 
  
 
@@ -16,6 +17,7 @@
 Элементы геймплея
 
 1. Перемещение платформы: Игрок управляет платформой с помощью мыши, с помощью левой кнопки мыши запускать шар, с помощью правой кнопки активировать бонусы (пушки).
+<img width="709" height="399" alt="image" src="https://github.com/user-attachments/assets/90f47e2d-4499-46df-a6b1-898687ef2b68" />
 
  
 
@@ -23,10 +25,12 @@
 
 
 3. Шар: Игрок с платформы запускает шар, которой разрушает блоки, отскакивает от стен и платформы, игрок должен не дать шару упасть на нижнюю стену.
+<img width="709" height="399" alt="image" src="https://github.com/user-attachments/assets/17a0b9ab-c06e-448b-ab77-b37b483719b6" />
 
  
 
 4. Бонусы: Блок после уничтожения может оставить бонус, который будет падать вниз, игрок может подобрать бонус платформой.
+<img width="709" height="423" alt="image" src="https://github.com/user-attachments/assets/1b67b6c9-7eb1-4ad4-a1dd-c768052b0814" />
 
  
 
@@ -52,7 +56,4 @@
 18.	 Дополнительная платформа, не даёт шару падать вниз
 19.	 Сюрикен, разрушает блоки, не отскакивая от них
 
-
-
-Игра:
-https://drive.google.com/drive/folders/1HCwd1nJRbCv5-empCiem8UjNAuBgi94I?usp=sharing
+Игра: https://drive.google.com/file/d/1opg_ZwrVe2-mOYXpC74hrmXM2-_PvvlS/view?usp=sharing
