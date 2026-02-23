@@ -1,3 +1,5 @@
+Игра: https://drive.google.com/file/d/1opg_ZwrVe2-mOYXpC74hrmXM2-_PvvlS/view?usp=sharing
+
 Финальная работа курса «Игра 4. Арканоид»
 
 Описание проекта «Арканоид»»
@@ -55,5 +57,3 @@
 17.	 Щит, не дают шару падать вниз
 18.	 Дополнительная платформа, не даёт шару падать вниз
 19.	 Сюрикен, разрушает блоки, не отскакивая от них
-
-Игра: https://drive.google.com/file/d/1opg_ZwrVe2-mOYXpC74hrmXM2-_PvvlS/view?usp=sharing
